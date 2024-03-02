@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/sbms
-    password: nary
+    url: jdbc:oracle:thin:@localhost:1521:XE
+    password: Narendra_01
     username: system
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: oracle.jdbc.driver.OracleDriver
   jpa:
     show-sql: true
     hibernate:

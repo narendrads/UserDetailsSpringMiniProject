@@ -98,20 +98,21 @@ public ResponseEntity<Optional<UserEntity>> getById(@PathVariable Integer id){
 	        return new ResponseEntity<>(entities, HttpStatus.OK);
 	    }
 	 
-	 @GetMapping("/pagenation")
-		public ResponseEntity<  List<UserEntity>> getUserInPage(@RequestParam(defaultValue = "0")Integer page,@RequestParam(defaultValue = "5") Integer size){
-			Page<UserEntity> userInPage = service.getUserInPage(page, size);
-			
-       List<UserEntity> content = userInPage.getContent();
-	       
-	    System.out.println(content);
-			for(UserEntity s:userInPage) {
-				System.out.println(s  );
-			}
-		        
-			return new ResponseEntity<  List<UserEntity>> (content,HttpStatus.OK);
+	 @GetMapping("/pagedAndSorted")
+	 public ResponseEntity<List<UserEntity>> getUsersPagedAndSorted(
+	         @RequestParam(defaultValue = "0") Integer page,
+	         @RequestParam(defaultValue = "5") Integer size,
+	         @RequestParam(required = true) String columnName,
+	         @RequestParam(defaultValue = "asc") String sortOrder) {
+	     
+	     Sort.Direction direction = sortOrder.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+	     Sort sort = Sort.by(direction, columnName);
+	     
+	     Page<UserEntity> userPage = service.getUserInPageAndSorted(page, size, sort);
+	     List<UserEntity> content = userPage.getContent();
+	     return new ResponseEntity<>(content, HttpStatus.OK);
+	 }
 
-}
 	 @PutMapping("/update/{id}")
 	 public ResponseEntity<UserEntity> update(@PathVariable("id") Integer id, @RequestBody UserEntity updatedUser){
 		 UserEntity entity=service.updateUser(id, updatedUser);

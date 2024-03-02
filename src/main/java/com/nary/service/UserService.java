@@ -42,11 +42,11 @@ public class UserService {
 	public List<UserEntity> getAllEntitiesSorted(Sort sort) {
         return userRepo.findAll(sort);
     }
-	public Page<UserEntity> getUserInPage(Integer page,Integer size){
-		return userRepo.findAll(PageRequest.of(page, size));
-	
+	public Page<UserEntity> getUserInPageAndSorted(Integer page, Integer size, Sort sort) {
+	    PageRequest pageRequest = PageRequest.of(page, size, sort);
+	    return userRepo.findAll(pageRequest);
 	}
-	
+
 	public UserEntity updateUser(Integer id,UserEntity entity) {
 		return userRepo.findById(id).map(user->
 		
