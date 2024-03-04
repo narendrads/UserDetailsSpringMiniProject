@@ -1,12 +1,19 @@
 package com.nary.controller;
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +26,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 
 import com.nary.entity.UserEntity;
 import com.nary.service.UserService;
@@ -129,4 +135,67 @@ public ResponseEntity<Optional<UserEntity>> getById(@PathVariable Integer id){
 		return  ResponseEntity.ok("dalete success");
 		 
 	 }
+	
+
+	    @GetMapping("/pagedAndSorted1")
+	    public byte[] getPagedAndSortedUsersPdf(
+	            @RequestParam(defaultValue = "0") int page,
+	            @RequestParam(defaultValue = "10") int size,
+	            @RequestParam(defaultValue = "userId") String columnName,
+	            @RequestParam(defaultValue = "asc") String sortOrder) {
+
+	        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortOrder), columnName));
+	        Page<UserEntity> usersPage = service.getUserInPageAndSorted(pageRequest);
+
+	        return generatePdf(usersPage);
+	    }
+
+	    private byte[] generatePdf(Page<UserEntity> usersPage) {
+	        try (PDDocument document = new PDDocument()) {
+	            PDPage page = new PDPage();
+	            document.addPage(page);
+
+	            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+	                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+	                contentStream.beginText();
+	                contentStream.newLineAtOffset(100, 700);
+
+	                // Write headers
+	                contentStream.showText("User ID");
+	                contentStream.newLineAtOffset(100, 0);
+	                contentStream.showText("First Name");
+	                contentStream.newLineAtOffset(100, 0);
+	                contentStream.showText("Last Name");
+	                contentStream.newLineAtOffset(100, 0);
+	                contentStream.showText("Age");
+	                contentStream.newLineAtOffset(100, 0);
+	                contentStream.showText("Phone Number");
+	                contentStream.newLineAtOffset(-400, -20);
+
+	                // Write data
+	                List<UserEntity> users = usersPage.getContent();
+	                for (UserEntity user : users) {
+	                    contentStream.showText(user.getUserId().toString());
+	                    contentStream.newLineAtOffset(100, 0);
+	                    contentStream.showText(user.getUserFirstName());
+	                    contentStream.newLineAtOffset(100, 0);
+	                    contentStream.showText(user.getUserLastName());
+	                    contentStream.newLineAtOffset(100, 0);
+	                    contentStream.showText(String.valueOf(user.getUserAge()));
+	                    contentStream.newLineAtOffset(100, 0);
+	                    contentStream.showText(user.getUserPhoneNo().toString());
+	                    contentStream.newLineAtOffset(-400, -20);
+	                }
+	                contentStream.endText();
+	            }
+
+	            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	            document.save(baos);
+	            return baos.toByteArray();
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	        return null;
+	    }
+
 	 }

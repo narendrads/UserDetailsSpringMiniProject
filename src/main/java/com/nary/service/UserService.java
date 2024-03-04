@@ -63,4 +63,8 @@ public class UserService {
 	public void deletebyid(Integer id) {
 		userRepo.deleteById(id);
 	}
+	public Page<UserEntity> getUserInPageAndSorted(PageRequest pageRequest) {
+		
+		return userRepo.findAll(pageRequest);
+	}
 }
